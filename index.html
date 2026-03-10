@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neighbours — Paragraph Coach</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: #1a1a2e; font-family: Georgia, 'Times New Roman', serif; color: #e8e0d0; font-size: 16px; }
+
+    /* HEADER */
+    #header { background: linear-gradient(135deg, #16213e 0%, #0f3460 100%); border-bottom: 3px solid #e8b45a; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .eyebrow { font-size: 10px; letter-spacing: 3px; color: #e8b45a; text-transform: uppercase; margin-bottom: 4px; font-family: sans-serif; }
+    #header h1 { font-size: 21px; font-weight: normal; color: #f5efe0; }
+    #header .sub { font-size: 12px; color: #8899bb; margin-top: 3px; font-family: sans-serif; }
+    #peaeal-badge { background: rgba(232,180,90,0.13); border: 1px solid rgba(232,180,90,0.33); border-radius: 8px; padding: 8px 14px; font-size: 12px; color: #e8b45a; font-family: sans-serif; text-align: right; }
+    #peaeal-badge strong { display: block; font-weight: bold; margin-bottom: 2px; }
+
+    /* MAIN */
+    #main { max-width: 860px; margin: 0 auto; padding: 26px 20px 80px; }
+
+    /* STREAM SELECTOR */
+    #stream-screen { display: flex; flex-direction: column; align-items: center; padding: 48px 20px; text-align: center; }
+    #stream-screen .prompt-text { font-size: 18px; color: #d4c9b8; margin-bottom: 8px; line-height: 1.6; }
+    #stream-screen .prompt-sub { font-size: 13px; color: #8899bb; font-family: sans-serif; margin-bottom: 40px; }
+    .stream-cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+    .stream-card { background: #16213e; border: 2px solid #334466; border-radius: 14px; padding: 32px 44px; cursor: pointer; min-width: 180px; text-align: center; transition: border-color 0.2s, background 0.2s, transform 0.15s; }
+    .stream-card:hover { border-color: #e8b45a; background: #1c2a4a; transform: translateY(-4px); }
+    .stream-card .stream-label { font-size: 42px; font-weight: bold; font-family: sans-serif; margin-bottom: 10px; }
+    .stream-card.g2 .stream-label { color: #7bb8f0; }
+    .stream-card.g3 .stream-label { color: #e8b45a; }
+    .stream-card .stream-desc { font-size: 13px; color: #a8b8c8; font-family: sans-serif; line-height: 1.5; }
+    .stream-card .stream-bands { margin-top: 10px; font-size: 11px; font-family: sans-serif; color: #556677; }
+
+    /* STREAM BADGE */
+    #stream-badge { display: none; background: rgba(232,180,90,0.1); border: 1px solid rgba(232,180,90,0.28); border-radius: 6px; padding: 6px 14px; font-size: 12px; font-family: sans-serif; color: #e8b45a; margin-bottom: 20px; width: fit-content; }
+    #stream-badge button { background: none; border: none; color: #8899bb; font-size: 11px; cursor: pointer; margin-left: 10px; text-decoration: underline; font-family: sans-serif; }
+    #stream-badge button:hover { color: #e8b45a; }
+
+    /* INTRO CARD */
+    #intro-card { background: #16213e; border: 1px solid #334466; border-left: 4px solid #e8b45a; border-radius: 10px; padding: 20px 24px; margin-bottom: 22px; font-size: 15px; line-height: 1.75; color: #d4c9b8; }
+    #intro-card p { margin-bottom: 10px; }
+    #intro-card p:last-child { margin-bottom: 0; }
+
+    /* RUBRIC */
+    #rubric-toggle { background: transparent; border: 1px solid #334466; border-radius: 7px; color: #8899bb; font-family: sans-serif; font-size: 13px; padding: 8px 16px; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    #rubric-toggle:hover { border-color: #667788; color: #aabbcc; }
+    #rubric-grid { display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 22px; }
+    #rubric-grid.open { display: grid; }
+    .band-card { background: #0d1b2a; border-radius: 7px; border: 1px solid transparent; border-top-width: 3px; padding: 12px; }
+    .band-card .band-name  { font-family: sans-serif; font-size: 13px; font-weight: bold; }
+    .band-card .band-marks { color: #667788; font-family: sans-serif; font-size: 11px; margin-bottom: 8px; }
+    .band-card .band-item  { font-size: 11px; color: #a8b8c8; margin-bottom: 4px; line-height: 1.4; font-family: sans-serif; }
+
+    /* INPUT */
+    #input-section { margin-top: 20px; }
+    .field-label { display: block; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8899bb; font-family: sans-serif; margin-bottom: 10px; }
+    textarea { width: 100%; background: #0d1b2a; border: 1.5px solid #334466; border-radius: 8px; color: #e8e0d0; font-size: 15px; line-height: 1.75; padding: 14px 16px; font-family: Georgia, serif; resize: vertical; outline: none; transition: border-color 0.2s; }
+    textarea:focus { border-color: #e8b45a; }
+    textarea::placeholder { color: #445566; }
+    #word-status { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 10px; }
+    #word-count-label { font-size: 13px; font-family: sans-serif; color: #cc6666; }
+
+    /* BUTTONS */
+    .btn-primary { background: #334466; color: #667788; border: none; border-radius: 7px; padding: 11px 28px; font-size: 14px; font-family: sans-serif; font-weight: bold; cursor: not-allowed; letter-spacing: 0.5px; transition: background 0.2s, color 0.2s; }
+    .btn-primary.ready { background: linear-gradient(135deg, #e8b45a, #d4983a); color: #1a1a2e; cursor: pointer; }
+    .btn-primary.ready:hover { opacity: 0.9; }
+    .btn-secondary { background: transparent; border: 1px solid #334466; border-radius: 6px; color: #8899bb; font-family: sans-serif; font-size: 13px; padding: 7px 16px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .btn-secondary:hover, .btn-secondary.active { border-color: #e8b45a; color: #e8b45a; background: rgba(232,180,90,0.08); }
+    .btn-send { background: #334466; color: #667788; border: none; border-radius: 7px; padding: 10px 24px; font-size: 13px; font-family: sans-serif; font-weight: bold; cursor: not-allowed; }
+    .btn-send.ready { background: linear-gradient(135deg, #e8b45a, #d4983a); color: #1a1a2e; cursor: pointer; }
+
+    /* CONVERSATION */
+    #conversation { margin-top: 8px; }
+    .msg-student-para { background: #0d1b2a; border: 1px solid #334466; border-radius: 10px; padding: 16px 20px; margin-top: 24px; margin-bottom: 4px; }
+    .msg-student-para .msg-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8899bb; font-family: sans-serif; margin-bottom: 10px; }
+    .msg-student-para .para-text { font-size: 15px; line-height: 1.8; color: #d4c9b8; white-space: pre-wrap; }
+    .msg-student { background: #0d1b2a; border: 1px solid #334466; border-radius: 10px; padding: 14px 18px; margin-top: 14px; font-size: 14px; color: #c4b9a8; line-height: 1.7; font-family: sans-serif; }
+    .msg-student .you-label { color: #667788; font-size: 11px; display: block; margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
+    .msg-teacher { background: linear-gradient(160deg, #16213e 0%, #0f2a3a 100%); border: 1px solid #2a4060; border-left: 4px solid #e8b45a; border-radius: 10px; padding: 22px 24px; margin-top: 12px; line-height: 1.8; font-size: 15px; }
+    .teacher-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #2a4060; }
+    .teacher-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #e8b45a, #d4983a); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .teacher-name { font-family: sans-serif; font-size: 13px; color: #e8b45a; font-weight: bold; }
+    .teacher-role { font-family: sans-serif; font-size: 11px; color: #667788; }
+    .teacher-body { color: #d8d0c0; white-space: pre-wrap; }
+    .teacher-body strong { color: #f0e8d0; }
+    .streaming-cursor { display: inline-block; width: 2px; height: 1em; background: #e8b45a; margin-left: 2px; vertical-align: text-bottom; animation: blink 0.7s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* LOADING */
+    #loading-row { display: none; align-items: center; gap: 10px; padding: 20px 0; color: #8899bb; font-family: sans-serif; font-size: 14px; }
+    #loading-row.visible { display: flex; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #e8b45a; animation: pulse 1.2s ease-in-out infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+
+    /* FOLLOW-UP */
+    #followup-panel { display: none; margin-top: 24px; background: #16213e; border: 1px solid #334466; border-radius: 10px; padding: 20px 22px; }
+    #followup-panel.visible { display: block; }
+    #followup-panel .panel-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8899bb; font-family: sans-serif; margin-bottom: 14px; }
+    #mode-buttons { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    #send-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .hidden { display: none !important; }
+    #bottom-anchor { height: 1px; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div class="eyebrow">Literature Coaching Tool</div>
+    <h1><em>Neighbours</em> — Paragraph Coach</h1>
+    <div class="sub" id="header-sub">by Alfian Sa'at &nbsp;·&nbsp; Sec 2 Literature &nbsp;·&nbsp; Impressions of the Speaker</div>
+  </div>
+  <div id="peaeal-badge">
+    <strong>PEAEAL Format</strong>
+    Point · Evidence · Analysis<br>
+    Evidence · Analysis · Link
+  </div>
+</div>
+
+<div id="main">
+
+  <!-- STREAM SELECTOR -->
+  <div id="stream-screen">
+    <div class="prompt-text">Welcome! First, please select your stream.</div>
+    <div class="prompt-sub">Miss Rina will use the correct marking rubric for your level.</div>
+    <div class="stream-cards">
+      <div class="stream-card g2" onclick="selectStream('G2')">
+        <div class="stream-label">G2</div>
+        <div class="stream-desc">Express / G2<br>Literature</div>
+        <div class="stream-bands">5 Bands &nbsp;·&nbsp; 0–25 marks</div>
+      </div>
+      <div class="stream-card g3" onclick="selectStream('G3')">
+        <div class="stream-label">G3</div>
+        <div class="stream-desc">G3 / Higher<br>Literature</div>
+        <div class="stream-bands">6 Bands &nbsp;·&nbsp; 0–25 marks</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COACHING SCREEN -->
+  <div id="coaching-screen" class="hidden">
+
+    <div id="stream-badge"></div>
+
+    <div id="intro-card">
+      <p>Hi there! I'm <strong>Miss Rina</strong>, your Literature coach for today.</p>
+      <p>Paste your PEAEAL paragraph below — the one answering <strong>"What are your impressions of the speaker in 'Neighbours'?"</strong></p>
+      <p>A quick reminder: the narrator is called <strong>the speaker</strong> — she is never named. <strong>Alfian Sa'at</strong> is the poet who wrote the poem, not a character in it. Make sure your paragraph refers to "the speaker" when discussing the narrator's actions and feelings!</p>
+      <p>I'll read your paragraph and give you questions and prompts to push it up a band. I won't rewrite it for you — but I'll help you see exactly what's missing. Ready when you are. 🖊️</p>
+    </div>
+
+    <button id="rubric-toggle" onclick="toggleRubric()">
+      <span id="rubric-arrow">▸</span>
+      <span id="rubric-label">View Marking Rubric</span>
+    </button>
+    <div id="rubric-grid"></div>
+
+    <div id="input-section">
+      <label class="field-label" for="para-input">Your Paragraph</label>
+      <textarea id="para-input" rows="8"
+        placeholder="Paste or type your PEAEAL paragraph here (100–120 words)..."
+        oninput="onParaInput()"></textarea>
+      <div id="word-status">
+        <span id="word-count-label">0 / 120 words — need 100 more</span>
+        <button id="submit-btn" class="btn-primary" onclick="handleSubmit()">Get Feedback →</button>
+      </div>
+    </div>
+
+    <div id="conversation"></div>
+
+    <div id="loading-row">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <span id="loading-text">Miss Rina is reading your paragraph...</span>
+    </div>
+
+    <div id="followup-panel">
+      <div class="panel-label">What would you like to do next?</div>
+      <div id="mode-buttons">
+        <button id="btn-question" class="btn-secondary active" onclick="setMode('question')">💬 Ask a question</button>
+        <button id="btn-revise"   class="btn-secondary"        onclick="setMode('revise')">✏️ Submit revised paragraph</button>
+        <button id="btn-new"      class="btn-secondary"        onclick="handleReset(false)">🔄 Start over</button>
+      </div>
+      <textarea id="followup-textarea" rows="3"
+        placeholder="Ask Miss Rina anything — e.g. 'How do I improve my analysis of the word slam?'"
+        oninput="onFollowupInput()"></textarea>
+      <div id="send-row">
+        <button id="send-btn" class="btn-send" onclick="handleSend()">Send →</button>
+      </div>
+    </div>
+
+    <div id="bottom-anchor"></div>
+  </div>
+
+</div>
+
+<script>
+  var conversationHistory = [];
+  var currentMode         = "question";
+  var currentStream       = "";
+
+  // ── RUBRIC DISPLAY DATA ───────────────────────────────────────────────
+  var RUBRIC_BANDS = {
+    G2: [
+      { name:"Band 1", marks:"21–25", color:"#4caf82", items:["Well-focused on question","Understands HOW writer conveys meaning","Careful evidence selection","Clear arguments (may be laboured)"] },
+      { name:"Band 2", marks:"18–20", color:"#7bb8f0", items:["Relevant to main demands","Understands obvious concerns","Some analysis (inconsistent)","Argument present, some narrative"] },
+      { name:"Band 3", marks:"15–17", color:"#e8b45a", items:["Generally relevant (may drift)","Basic understanding — no interpretation","Generalisations, relevant evidence","Largely narrative writing"] },
+      { name:"Band 4", marks:"12–14", color:"#e8855a", items:["Little relevance to question","Little understanding of text","Evidence without significance","Argument hard to identify"] },
+      { name:"Band 5", marks:"0–11",  color:"#cc6666", items:["Almost no understanding","Misreading of text","Hardly any evidence","No argument or direction"] }
+    ],
+    G3: [
+      { name:"Band 1", marks:"21–25", color:"#4caf82", items:["Close attention to question; explores opportunities","Sound understanding; insights into writer's effects","Thoughtfully selected evidence","Clear, organised, consistent viewpoint"] },
+      { name:"Band 2", marks:"18–20", color:"#7bb8f0", items:["Generally well-focused on question","Understands main concerns + how writer conveys","Careful, relevant evidence","Clear but laboured; may lapse to narrative"] },
+      { name:"Band 3", marks:"15–17", color:"#a8d080", items:["Relevant to main demands","Some understanding of obvious concerns","Some analysis (not always done well)","Argument present, lacking focus, some narrative"] },
+      { name:"Band 4", marks:"12–14", color:"#e8b45a", items:["Generally relevant (link may drift)","Basic understanding — no interpretation","Generalisations, generally relevant evidence","Attempts argument but struggles for clarity"] },
+      { name:"Band 5", marks:"9–11",  color:"#e8855a", items:["Little relevance to question","Little understanding of text","Evidence without understanding significance","Argument hard to identify, no direction"] },
+      { name:"Band 6", marks:"0–8",   color:"#cc6666", items:["Almost no understanding of question","Misreading of text / memorised scripts","Hardly any information from text","No argument, no direction or focus"] }
+    ]
+  };
+
+  // ── STREAM SELECTION ──────────────────────────────────────────────────
+  function selectStream(stream) {
+    currentStream = stream;
+    document.getElementById("stream-screen").classList.add("hidden");
+    document.getElementById("coaching-screen").classList.remove("hidden");
+    document.getElementById("header-sub").textContent =
+      "by Alfian Sa\u2019at \u00a0\u00b7\u00a0 Sec 2 Literature \u00a0\u00b7\u00a0 " + stream + " Stream";
+    var badge = document.getElementById("stream-badge");
+    badge.style.display = "block";
+    badge.innerHTML = "Stream: <strong>" + stream + "</strong>&nbsp;<button onclick=\"changeStream()\">Change stream</button>";
+    document.getElementById("rubric-label").textContent = "View " + stream + " Marking Rubric";
+    buildRubricGrid(stream);
+  }
+
+  function changeStream() {
+    resetCoachingState();
+    document.getElementById("coaching-screen").classList.add("hidden");
+    document.getElementById("stream-screen").classList.remove("hidden");
+    document.getElementById("stream-badge").style.display = "none";
+    document.getElementById("header-sub").textContent =
+      "by Alfian Sa\u2019at \u00a0\u00b7\u00a0 Sec 2 Literature \u00a0\u00b7\u00a0 Impressions of the Speaker";
+    currentStream = "";
+  }
+
+  function buildRubricGrid(stream) {
+    var grid = document.getElementById("rubric-grid");
+    grid.innerHTML = "";
+    RUBRIC_BANDS[stream].forEach(function(b) {
+      var card = document.createElement("div");
+      card.className = "band-card";
+      card.style.borderColor = b.color;
+      card.innerHTML =
+        "<div class=\"band-name\" style=\"color:" + b.color + "\">" + b.name + "</div>" +
+        "<div class=\"band-marks\">" + b.marks + " marks</div>" +
+        b.items.map(function(i) { return "<div class=\"band-item\">\u00b7 " + i + "</div>"; }).join("");
+      grid.appendChild(card);
+    });
+    grid.classList.remove("open");
+    document.getElementById("rubric-arrow").textContent = "\u25b8";
+  }
+
+  // ── WORD COUNT ────────────────────────────────────────────────────────
+  function countWords(text) {
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  }
+  function onParaInput() {
+    var count = countWords(document.getElementById("para-input").value);
+    var label = document.getElementById("word-count-label");
+    var btn   = document.getElementById("submit-btn");
+    if (count < 100) {
+      label.style.color = count >= 60 ? "#e8b45a" : "#cc6666";
+      label.textContent = count + " / 120 words \u2014 need " + (100 - count) + " more";
+      btn.className = "btn-primary";
+    } else if (count > 120) {
+      label.style.color = "#cc6666";
+      label.textContent = count + " / 120 words \u2014 " + (count - 120) + " over limit, please trim";
+      btn.className = "btn-primary";
+    } else {
+      label.style.color = "#6ec98a";
+      label.textContent = count + " / 120 words \u2713 good to go!";
+      btn.className = "btn-primary ready";
+    }
+  }
+  function onFollowupInput() {
+    var val = document.getElementById("followup-textarea").value.trim();
+    document.getElementById("send-btn").className = val ? "btn-send ready" : "btn-send";
+  }
+
+  // ── RUBRIC TOGGLE ─────────────────────────────────────────────────────
+  function toggleRubric() {
+    var grid = document.getElementById("rubric-grid");
+    var open = grid.classList.toggle("open");
+    document.getElementById("rubric-arrow").textContent = open ? "\u25be" : "\u25b8";
+  }
+
+  // ── MODE SWITCH ───────────────────────────────────────────────────────
+  function setMode(mode) {
+    currentMode = mode;
+    var ta = document.getElementById("followup-textarea");
+    document.getElementById("btn-question").className = "btn-secondary" + (mode === "question" ? " active" : "");
+    document.getElementById("btn-revise").className   = "btn-secondary" + (mode === "revise"   ? " active" : "");
+    if (mode === "question") {
+      ta.rows = 3;
+      ta.placeholder = "Ask Miss Rina anything \u2014 e.g. \u2018How do I improve my analysis of the word slam?\u2019";
+    } else {
+      ta.rows = 6;
+      ta.placeholder = "Paste your revised paragraph here...";
+    }
+    ta.value = "";
+    onFollowupInput();
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────────
+  function renderMarkdown(text) {
+    return text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  }
+  function escHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+  }
+
+  function appendStudentPara(para) {
+    var div = document.createElement("div");
+    div.className = "msg-student-para";
+    div.innerHTML = "<div class=\"msg-label\">Your Paragraph</div><div class=\"para-text\">" + escHtml(para) + "</div>";
+    document.getElementById("conversation").appendChild(div);
+  }
+  function appendStudentMsg(text) {
+    var div = document.createElement("div");
+    div.className = "msg-student";
+    div.innerHTML = "<span class=\"you-label\">You</span>" + escHtml(text);
+    document.getElementById("conversation").appendChild(div);
+  }
+  function createTeacherBubble() {
+    var div = document.createElement("div");
+    div.className = "msg-teacher";
+    div.innerHTML =
+      "<div class=\"teacher-header\">" +
+        "<div class=\"teacher-avatar\">\uD83D\uDD8A\uFE0F</div>" +
+        "<div>" +
+          "<div class=\"teacher-name\">Miss Rina</div>" +
+          "<div class=\"teacher-role\">Literature Coach \u00b7 " + currentStream + " Stream</div>" +
+        "</div>" +
+      "</div>" +
+      "<div class=\"teacher-body\"><span class=\"streaming-cursor\"></span></div>";
+    document.getElementById("conversation").appendChild(div);
+    return div.querySelector(".teacher-body");
+  }
+
+  function setLoading(on, msg) {
+    var row = document.getElementById("loading-row");
+    row.className = on ? "visible" : "";
+    if (on) document.getElementById("loading-text").textContent = msg || "Miss Rina is reading your paragraph...";
+  }
+  function scrollToBottom() {
+    document.getElementById("bottom-anchor").scrollIntoView({ behavior: "smooth" });
+  }
+
+  // ── STREAMING CALL TO OUR SERVER ──────────────────────────────────────
+  async function streamFromServer(userContent, bodyEl) {
+    conversationHistory.push({ role: "user", content: userContent });
+
+    var res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stream: currentStream,
+        messages: conversationHistory
+      })
+    });
+
+    if (!res.ok) {
+      bodyEl.innerHTML = "Sorry, something went wrong. Please try again.";
+      setLoading(false);
+      return "";
+    }
+
+    var reader   = res.body.getReader();
+    var decoder  = new TextDecoder();
+    var fullText = "";
+
+    setLoading(false);
+    scrollToBottom();
+
+    while (true) {
+      var result = await reader.read();
+      if (result.done) break;
+
+      var chunk = decoder.decode(result.value, { stream: true });
+      var lines = chunk.split("\n");
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line.startsWith("data: ")) continue;
+        var data = line.slice(6);
+        if (data === "[DONE]") continue;
+        try {
+          var evt = JSON.parse(data);
+          if (evt.type === "content_block_delta" && evt.delta && evt.delta.text) {
+            fullText += evt.delta.text;
+            bodyEl.innerHTML = renderMarkdown(escHtml(fullText)) + "<span class=\"streaming-cursor\"></span>";
+            scrollToBottom();
+          }
+        } catch(e) { /* skip malformed lines */ }
+      }
+    }
+
+    bodyEl.innerHTML = renderMarkdown(escHtml(fullText));
+    conversationHistory.push({ role: "assistant", content: fullText });
+    return fullText;
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────
+  async function handleSubmit() {
+    var text  = document.getElementById("para-input").value;
+    var count = countWords(text);
+    if (count < 100 || count > 120) return;
+
+    document.getElementById("input-section").classList.add("hidden");
+    document.getElementById("intro-card").classList.add("hidden");
+    appendStudentPara(text);
+    setLoading(true);
+    scrollToBottom();
+
+    var bodyEl = createTeacherBubble();
+    await streamFromServer("Here is my paragraph:\n\n" + text, bodyEl);
+    document.getElementById("followup-panel").className = "visible";
+    scrollToBottom();
+  }
+
+  // ── FOLLOW-UP ─────────────────────────────────────────────────────────
+  async function handleSend() {
+    var ta  = document.getElementById("followup-textarea");
+    var val = ta.value.trim();
+    if (!val) return;
+
+    var userContent;
+    if (currentMode === "revise") {
+      userContent = "Here is my revised paragraph:\n\n" + val + "\n\nHow have I improved? What should I still work on?";
+      appendStudentMsg("Revised paragraph submitted for feedback.");
+    } else {
+      userContent = val;
+      appendStudentMsg(val);
+    }
+    ta.value = "";
+    onFollowupInput();
+    setLoading(true, "Miss Rina is thinking...");
+    scrollToBottom();
+
+    var bodyEl = createTeacherBubble();
+    await streamFromServer(userContent, bodyEl);
+    scrollToBottom();
+  }
+
+  // ── RESET ─────────────────────────────────────────────────────────────
+  function resetCoachingState() {
+    conversationHistory = [];
+    currentMode = "question";
+    document.getElementById("para-input").value         = "";
+    document.getElementById("conversation").innerHTML   = "";
+    document.getElementById("followup-panel").className = "";
+    document.getElementById("followup-textarea").value  = "";
+    document.getElementById("input-section").classList.remove("hidden");
+    document.getElementById("intro-card").classList.remove("hidden");
+    document.getElementById("rubric-grid").classList.remove("open");
+    document.getElementById("rubric-arrow").textContent = "\u25b8";
+    onParaInput();
+    setMode("question");
+  }
+  function handleReset(goToStreamSelect) {
+    resetCoachingState();
+    if (goToStreamSelect) { changeStream(); }
+    else { window.scrollTo({ top: 0, behavior: "smooth" }); }
+  }
+</script>
+</body>
+</html>
